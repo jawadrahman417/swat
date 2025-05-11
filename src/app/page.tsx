@@ -4,14 +4,23 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
-import type { Property, AppliedFilters, Feature } from '@/lib/types'; 
+import type { Property, AppliedFilters } from '@/lib/types'; 
 import { placeholderProperties } from '@/lib/placeholder-data';
 import { initialFilters } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, AlertTriangle } from 'lucide-react';
-import MapComponent from '@/components/map/MapComponent';
-import FilterSheet from '@/components/property/FilterSheet'; // Import FilterSheet
+// import MapComponent from '@/components/map/MapComponent'; // Remove direct import
+import FilterSheet from '@/components/property/FilterSheet'; 
+import MapSkeleton from '@/components/map/MapSkeleton'; // Import the skeleton loader
+
+import dynamic from 'next/dynamic';
+
+// Lazy load MapComponent
+const MapComponent = dynamic(() => import('@/components/map/MapComponent'), {
+  ssr: false, // Map components often rely on browser APIs like `window`
+  loading: () => <MapSkeleton />, // Show skeleton while loading
+});
 
 
 // Helper function to calculate Haversine distance
