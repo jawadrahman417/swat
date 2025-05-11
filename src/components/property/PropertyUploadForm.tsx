@@ -1,3 +1,4 @@
+// PropertyUploadForm.tsx
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,8 +22,9 @@ import { useState, type ChangeEvent } from "react";
 import { handleValidateLocation } from "@/lib/actions/propertyActions";
 import type { ValidateLocationOutput } from "@/ai/flows/validate-location";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, XCircle, MapPin, UploadCloud, Image as ImageIcon, Film } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, MapPin, UploadCloud, Image as ImageIcon, Film, MessageSquare } from "lucide-react";
 import Image from "next/image";
+import ChatInterface from "@/components/chat/ChatInterface"; // Import ChatInterface
 
 const propertyUploadSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -254,6 +256,16 @@ export default function PropertyUploadForm() {
                     </div>
                 )}
             </Card>
+
+            {/* Chat Interface: Conditionally rendered after photo upload */}
+            {photoPreview && (
+              <div className="mt-8 pt-6 border-t">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Property Chat
+                </h2>
+                <ChatInterface initialHeight="h-[500px]" />
+              </div>
+            )}
 
             <FormField
               control={form.control}

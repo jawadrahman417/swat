@@ -18,12 +18,16 @@ const mockMessages = [
     { id: 'm3', sender: 'John Doe', text: 'Great! Could I get more details about the neighborhood?', time: '10:05 AM', self: false },
 ];
 
+interface ChatInterfaceProps {
+  initialHeight?: string;
+}
 
-export default function ChatInterface() {
+export default function ChatInterface({ initialHeight }: ChatInterfaceProps) {
+  const heightClass = initialHeight || "h-[calc(100vh-200px)]";
   const selectedConversation = mockConversations[0]; // Mock selected conversation
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-200px)]"> {/* Adjust height as needed */}
+    <div className={`flex flex-col md:flex-row gap-6 ${heightClass}`}>
       {/* Conversations List */}
       <Card className="w-full md:w-1/3 h-full flex flex-col">
         <CardHeader>
