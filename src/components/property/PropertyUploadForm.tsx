@@ -282,7 +282,7 @@ export default function PropertyUploadForm() {
               )}
             />
 
-            <Button type="submit" className="w-full text-lg py-3" variant="accent" disabled={isSubmitting || isLocValidating || !locValidationResult?.isValidLocation}>
+            <Button type="submit" className="w-full text-lg py-3" variant="default" disabled={isSubmitting || isLocValidating || !locValidationResult?.isValidLocation}>
               {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UploadCloud className="mr-2 h-5 w-5" />}
               List Property
             </Button>
