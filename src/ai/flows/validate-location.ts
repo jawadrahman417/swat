@@ -26,7 +26,7 @@ export type ValidateLocationInput = z.infer<typeof ValidateLocationInputSchema>;
 
 const ValidateLocationOutputSchema = z.object({
   isValidLocation: z.boolean().describe('Whether the location is valid or not.'),
-  formattedAddress: z.string().describe('The formatted address of the location.'),
+  formattedAddress: z.string().describe('The formatted address of the location or an error message.'),
 });
 
 export type ValidateLocationOutput = z.infer<typeof ValidateLocationOutputSchema>;
@@ -50,7 +50,7 @@ async (input) => {
     // In a real application, you would use a geocoding service like
     // Google Maps Geocoding API to convert lat/lng to an address.
     // For demonstration purposes, we'll just return a formatted string.
-    return `Formatted Address: ${input.latitude}, ${input.longitude}`;
+    return `Formatted Address for: ${input.latitude}, ${input.longitude}`;
   }
 );
 
@@ -76,8 +76,30 @@ const validateLocationFlow = ai.defineFlow(
     inputSchema: ValidateLocationInputSchema,
     outputSchema: ValidateLocationOutputSchema,
   },
-  async input => {
-    const {output} = await validateLocationPrompt(input);
-    return output!;
+  async (input): Promise<ValidateLocationOutput> => {
+    try {
+      const { output } = await validateLocationPrompt(input);
+      if (!output) {
+        console.error('validateLocationPrompt did not return an output (null/undefined) for input:', input);
+        return {
+          isValidLocation: false,
+          formattedAddress: "Error: AI model returned no output for location validation."
+        };
+      }
+      return output;
+    } catch (flowError) {
+      console.error('Error executing validateLocationPrompt in flow:', flowError);
+      let errorMessage = "An unexpected error occurred during AI location validation.";
+      if (flowError instanceof Error) {
+        errorMessage = `AI Error: ${flowError.message}`;
+        if (flowError.message.toLowerCase().includes('api key not valid') || flowError.message.toLowerCase().includes('permission denied')) {
+            errorMessage = "AI Error: The API key for the AI service might be invalid or missing permissions. Please check your server configuration.";
+        }
+      }
+      return {
+        isValidLocation: false,
+        formattedAddress: errorMessage,
+      };
+    }
   }
 );
