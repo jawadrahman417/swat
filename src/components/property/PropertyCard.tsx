@@ -52,7 +52,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         )}
       </CardContent>
       <CardFooter className="p-4 border-t">
-         <Button variant="default" className="w-full">
+         <Button variant="secondary" />  // Replace "accent" with an allowed type.
     View Details
          </Button>
       </CardFooter>
