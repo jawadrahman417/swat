@@ -1,16 +1,16 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { UploadIcon, MessageSquareIcon, LogInIcon, LayoutGridIcon } from 'lucide-react'; // Removed MapIcon
+import { UploadIcon, LogInIcon, LayoutGridIcon } from 'lucide-react'; // Removed MessageSquareIcon
 
 const navLinks = [
   { href: '/', label: 'Feed', icon: LayoutGridIcon },
-  // { href: '/map', label: 'Map', icon: MapIcon }, // Removed Map link
   { href: '/upload', label: 'Upload', icon: UploadIcon },
-  { href: '/chat', label: 'Chat', icon: MessageSquareIcon },
+  // { href: '/chat', label: 'Chat', icon: MessageSquareIcon }, // Removed Chat link
 ];
 
 export default function Navigation() {
@@ -46,3 +46,4 @@ export default function Navigation() {
     </nav>
   );
 }
+
