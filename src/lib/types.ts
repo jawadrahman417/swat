@@ -47,6 +47,7 @@ export interface AppliedFilters {
   accessibility: 'vehicle' | 'narrow_way' | 'any';
   water: boolean; // If true, property must have water utility
   electricity: boolean; // If true, property must have electricity utility
+  location: string; // Added location filter
 }
 
 export const initialFilters: AppliedFilters = {
@@ -61,4 +62,6 @@ export const initialFilters: AppliedFilters = {
   accessibility: 'any',
   water: false,
   electricity: false,
+  location: '', // Initialize location filter
 };
+

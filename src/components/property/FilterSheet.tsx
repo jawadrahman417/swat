@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useState, type Dispatch, type SetStateAction, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -20,7 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { AppliedFilters, Feature } from '@/lib/types';
 import { ALL_FEATURES, initialFilters as globalInitialFilters } from '@/lib/types';
 import { Separator } from '../ui/separator';
-import { FilterXIcon, RotateCcwIcon } from 'lucide-react';
+import { FilterXIcon, RotateCcwIcon, MapPin } from 'lucide-react';
 
 interface FilterSheetProps {
   open: boolean;
@@ -56,9 +56,9 @@ export default function FilterSheet({ open, onOpenChange, onApplyFilters, curren
   };
   
   // Sync sheetFilters with currentFilters when sheet opens or currentFilters change
-  useState(() => {
+  useEffect(() => {
     setSheetFilters(currentFilters);
-  });
+  }, [currentFilters, open]);
 
 
   return (
@@ -72,6 +72,26 @@ export default function FilterSheet({ open, onOpenChange, onApplyFilters, curren
         </SheetHeader>
         <ScrollArea className="flex-grow px-6 py-4">
           <div className="space-y-6">
+            {/* Location */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2 flex items-center">
+                <MapPin className="mr-2 h-5 w-5 text-primary" /> Location
+              </h3>
+              <div>
+                <Label htmlFor="location">Search by Address/Area</Label>
+                <Input
+                  id="location"
+                  type="text"
+                  placeholder="e.g., Downtown, Miami Beach"
+                  value={sheetFilters.location}
+                  onChange={e => handleInputChange('location', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Price Range */}
             <div>
               <h3 className="text-lg font-semibold mb-2">Price Range ($)</h3>
@@ -261,3 +281,4 @@ export default function FilterSheet({ open, onOpenChange, onApplyFilters, curren
     </Sheet>
   );
 }
+
