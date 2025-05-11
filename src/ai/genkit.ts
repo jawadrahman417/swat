@@ -6,30 +6,28 @@ let googleAiPluginInstance;
 if (!process.env.GOOGLE_API_KEY) {
   console.error(
 `**********************************************************************************
-CRITICAL SERVER ERROR: GOOGLE_API_KEY environment variable is not set.
+CRITICAL SERVER ERROR: GOOGLE_API_KEY environment variable is not set in .env.local.
 AI features WILL FAIL.
-Please create a .env.local file in the root of your project (or ensure it's set
-in your production environment) and add:
+Please create or check your .env.local file in the root of your project and add:
 GOOGLE_API_KEY=your_actual_google_api_key_here
 
 The application server may not start or function correctly.
 **********************************************************************************`
   );
-  // Consider throwing an error to halt server startup if this key is absolutely critical
-  // throw new Error("CRITICAL: GOOGLE_API_KEY is not set. AI features disabled.");
 } else {
   try {
-    // Initialize the plugin directly with the key if process.env might be tricky for the plugin
+    // Initialize the plugin directly with the key
     googleAiPluginInstance = googleAI({ apiKey: process.env.GOOGLE_API_KEY });
+    console.log("Google AI Plugin initialized successfully with GOOGLE_API_KEY.");
   } catch (e: any) {
     console.error("**********************************************************************************");
     console.error("CRITICAL SERVER ERROR: Failed to initialize Google AI plugin for Genkit.");
     console.error("Error details:", e.message);
-    console.error("This is often due to an invalid GOOGLE_API_KEY, incorrect Google Cloud Project setup (e.g., Generative Language API not enabled), or network issues.");
-    console.error("Please verify your GOOGLE_API_KEY and Google Cloud Project setup.");
+    console.error("This can be due to an invalid GOOGLE_API_KEY, incorrect Google Cloud Project setup (e.g., Generative Language API not enabled), or network issues.");
+    console.error("Please verify your GOOGLE_API_KEY (should start with 'AIza...') and Google Cloud Project setup.");
+    console.error("Ensure the 'Generative Language API' is enabled in your Google Cloud project.");
     console.error("**********************************************************************************");
-    // Consider throwing an error to halt server startup
-    // throw new Error("Failed to initialize Google AI plugin. Check GOOGLE_API_KEY and server logs.");
+    // googleAiPluginInstance will remain undefined, handled below
   }
 }
 
@@ -41,9 +39,10 @@ if (googleAiPluginInstance) {
 `**********************************************************************************
 WARNING (Server): Google AI plugin for Genkit could NOT be initialized.
 AI features relying on Google AI (like location validation) will NOT work.
-This is almost certainly due to a missing or invalid GOOGLE_API_KEY or
-Google Cloud project configuration issues.
+This is likely due to a missing/invalid GOOGLE_API_KEY or Google Cloud project
+configuration issues (e.g., Generative Language API not enabled).
 The application server is running, but AI functionality is severely degraded or non-functional.
+Check server logs for CRITICAL ERRORS related to GOOGLE_API_KEY.
 **********************************************************************************`
     );
 }
@@ -70,6 +69,15 @@ if (typeof window !== 'undefined') { // Only run this check on the client-side
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+  **********************************************************************************`
+    );
+  }
+
+  if (!process.env.NEXT_PUBLIC_MAPS_API_KEY) {
+    console.warn(
+  `**********************************************************************************
+  WARNING (Client): NEXT_PUBLIC_MAPS_API_KEY environment variable is missing.
+  Map features may not work correctly. Ensure this is set in your .env.local file.
   **********************************************************************************`
     );
   }
