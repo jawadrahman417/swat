@@ -1,10 +1,11 @@
+
 // MapComponent.tsx
 'use client';
 
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Home as HomeIcon } from "lucide-react";
-import type { Property } from '@/lib/placeholder-data';
+import type { Property } from '@/lib/types'; // Updated import
 import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -59,15 +60,23 @@ export default function MapComponent({ properties, className }: MapComponentProp
 
   const mapCenter = useMemo(() => {
     if (properties.length > 0) {
+      // If properties are filtered, center on the first one or average
+      // For simplicity, centering on the first one if available
+      return properties[0].coordinates;
+    }
+    if (selectedProperty) {
+        return selectedProperty.coordinates;
+    }
+    if (properties.length > 0) {
       return {
         lat: properties.reduce((sum, p) => sum + p.coordinates.lat, 0) / properties.length,
         lng: properties.reduce((sum, p) => sum + p.coordinates.lng, 0) / properties.length,
       };
     }
     return DEFAULT_CENTER;
-  }, [properties]);
+  }, [properties, selectedProperty]);
 
-  const mapZoom = properties.length > 0 ? 10 : DEFAULT_ZOOM;
+  const mapZoom = properties.length > 0 ? (selectedProperty ? 14 : 10) : DEFAULT_ZOOM;
 
   return (
     <Card className={cn("w-full h-full flex flex-col", className)}>
@@ -79,9 +88,9 @@ export default function MapComponent({ properties, className }: MapComponentProp
       <CardContent className="flex-grow p-0 rounded-b-md overflow-hidden">
         <APIProvider apiKey={API_KEY} solutionChannel="GMP_devsite_samples_js_react-map-solution">
           <Map
-            key={properties.length} // Force re-render if properties change, helps recenter
-            defaultCenter={mapCenter}
-            defaultZoom={mapZoom}
+            key={properties.map(p => p.id).join(',') + (selectedProperty?.id || '')} // Force re-render if properties or selection change
+            center={mapCenter}
+            zoom={mapZoom}
             mapId="propswap-map-theme"
             gestureHandling={'greedy'}
             disableDefaultUI={false}
@@ -95,7 +104,7 @@ export default function MapComponent({ properties, className }: MapComponentProp
                 ref={property.id === selectedPropertyId ? markerRef : undefined}
                 title={property.title}
               >
-                 <div className="p-1 bg-primary rounded-full shadow-md cursor-pointer hover:bg-primary/80 transition-colors">
+                 <div className={`p-1 rounded-full shadow-md cursor-pointer transition-colors ${property.id === selectedPropertyId ? 'bg-accent' : 'bg-primary hover:bg-primary/80'}`}>
                     <HomeIcon className="w-5 h-5 text-primary-foreground" />
                  </div>
               </AdvancedMarker>
@@ -122,7 +131,8 @@ export default function MapComponent({ properties, className }: MapComponentProp
                   <p className="text-xs text-muted-foreground ">{selectedProperty.address}</p>
                   <p className="text-md font-bold text-primary">${selectedProperty.price.toLocaleString()}</p>
                   <Button variant="accent" size="sm" asChild className="w-full !mt-2">
-                    <Link href={`/#property-${selectedProperty.id}`}>View Details</Link>
+                    {/* The Link might need to be adjusted if PropertyCard is not directly on the page or scroll target is different */}
+                    <Link href={`#property-${selectedProperty.id}`} onClick={() => document.getElementById(`property-${selectedProperty.id}`)?.scrollIntoView({behavior: 'smooth'}) }>View Details</Link>
                   </Button>
                 </div>
               </InfoWindow>

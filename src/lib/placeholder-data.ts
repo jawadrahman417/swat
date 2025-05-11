@@ -1,16 +1,5 @@
-export interface Property {
-  id: string;
-  title: string;
-  type: 'rent' | 'sale';
-  price: number;
-  address: string;
-  imageUrl: string;
-  bedrooms: number;
-  bathrooms: number;
-  area: number; // sqft or sqm
-  coordinates: { lat: number; lng: number };
-  description: string;
-}
+
+import type { Property, Feature } from '@/lib/types';
 
 export const placeholderProperties: Property[] = [
   {
@@ -24,7 +13,12 @@ export const placeholderProperties: Property[] = [
     bathrooms: 3,
     area: 2500,
     coordinates: { lat: 25.7617, lng: -80.1918 },
-    description: 'A beautiful and spacious modern villa with a private pool and stunning city views. Perfect for families.'
+    description: 'A beautiful and spacious modern villa with a private pool and stunning city views. Perfect for families.',
+    negotiable: true,
+    accessibility: 'vehicle',
+    utilities: { water: true, electricity: true },
+    garage: true,
+    features: ["Swimming Pool", "Garden", "Attached Washroom", "Parking", "Security System"],
   },
   {
     id: '2',
@@ -37,7 +31,12 @@ export const placeholderProperties: Property[] = [
     bathrooms: 1,
     area: 900,
     coordinates: { lat: 40.7128, lng: -74.0060 },
-    description: 'A cozy apartment in the heart of downtown, close to all amenities and public transport. Ideal for young professionals.'
+    description: 'A cozy apartment in the heart of downtown, close to all amenities and public transport. Ideal for young professionals.',
+    negotiable: false,
+    accessibility: 'vehicle',
+    utilities: { water: true, electricity: true },
+    garage: false,
+    features: ["Gym Access", "Air Conditioning", "Furnished"],
   },
   {
     id: '3',
@@ -50,7 +49,12 @@ export const placeholderProperties: Property[] = [
     bathrooms: 2,
     area: 1800,
     coordinates: { lat: 41.8781, lng: -87.6298 },
-    description: 'Charming suburban home with a large backyard, perfect for families with children. Quiet neighborhood.'
+    description: 'Charming suburban home with a large backyard, perfect for families with children. Quiet neighborhood.',
+    negotiable: true,
+    accessibility: 'vehicle',
+    utilities: { water: true, electricity: true },
+    garage: true,
+    features: ["Garden", "Pet Friendly", "Parking"],
   },
   {
     id: '4',
@@ -63,7 +67,12 @@ export const placeholderProperties: Property[] = [
     bathrooms: 3,
     area: 2200,
     coordinates: { lat: 34.0522, lng: -118.2437 },
-    description: 'Stunning penthouse suite with panoramic views of the city. Includes access to rooftop pool and gym.'
+    description: 'Stunning penthouse suite with panoramic views of the city. Includes access to rooftop pool and gym.',
+    negotiable: false,
+    accessibility: 'vehicle',
+    utilities: { water: true, electricity: true },
+    garage: true,
+    features: ["Swimming Pool", "Gym Access", "Balcony", "Security System", "Parking", "Air Conditioning"],
   },
    {
     id: '5',
@@ -76,7 +85,12 @@ export const placeholderProperties: Property[] = [
     bathrooms: 2,
     area: 1500,
     coordinates: { lat: 32.7157, lng: -117.1611 },
-    description: 'Luxurious beachfront condo with direct access to the sand and breathtaking ocean views.'
+    description: 'Luxurious beachfront condo with direct access to the sand and breathtaking ocean views.',
+    negotiable: true,
+    accessibility: 'narrow_way',
+    utilities: { water: true, electricity: true },
+    garage: false,
+    features: ["Balcony", "Furnished", "Air Conditioning"],
   },
   {
     id: '6',
@@ -89,6 +103,11 @@ export const placeholderProperties: Property[] = [
     bathrooms: 1,
     area: 750,
     coordinates: { lat: 37.7749, lng: -122.4194 },
-    description: 'A stylish studio loft in a vibrant neighborhood, featuring high ceilings and industrial-chic design.'
+    description: 'A stylish studio loft in a vibrant neighborhood, featuring high ceilings and industrial-chic design.',
+    negotiable: true,
+    accessibility: 'narrow_way',
+    utilities: { water: true, electricity: false }, // Example with no electricity
+    garage: false,
+    features: ["Pet Friendly"],
   }
 ];

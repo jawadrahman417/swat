@@ -1,5 +1,6 @@
+
 import Image from 'next/image';
-import type { Property } from '@/lib/placeholder-data';
+import type { Property } from '@/lib/types'; // Updated import
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ interface PropertyCardProps {
 export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Card 
-      id={`property-${property.id}`} // Added id for deep linking
+      id={`property-${property.id}`} 
       className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
     >
       <CardHeader className="p-0">
@@ -43,6 +44,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <span className="flex items-center"><Bath className="w-4 h-4 mr-1 shrink-0" /> {property.bathrooms} Baths</span>
           <span className="flex items-center"><Ruler className="w-4 h-4 mr-1 shrink-0" /> {property.area} sqft</span>
         </div>
+        {/* Displaying a few features for demonstration */}
+        {property.features && property.features.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Features: {property.features.slice(0, 2).join(', ')}{property.features.length > 2 ? '...' : ''}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="p-4 border-t">
          <Button variant="accent" className="w-full">

@@ -1,14 +1,18 @@
+
 // src/app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
-import type { Property } from '@/lib/placeholder-data'; 
+import type { Property, AppliedFilters, Feature } from '@/lib/types'; 
 import { placeholderProperties } from '@/lib/placeholder-data';
+import { initialFilters } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, AlertTriangle } from 'lucide-react';
-import MapComponent from '@/components/map/MapComponent'; // Import MapComponent
+import MapComponent from '@/components/map/MapComponent';
+import FilterSheet from '@/components/property/FilterSheet'; // Import FilterSheet
+
 
 // Helper function to calculate Haversine distance
 function haversineDistance(
@@ -36,6 +40,8 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error' | 'unsupported' | 'default'>('loading');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<AppliedFilters>(initialFilters);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && navigator.geolocation) {
@@ -58,8 +64,8 @@ export default function HomePage() {
     }
   }, []);
 
-  useEffect(() => {
-    let currentProperties = [...placeholderProperties];
+  const applyAllFilters = useCallback(() => {
+    let currentProperties: Property[] = [...placeholderProperties];
 
     // Filter properties based on search term
     if (searchTerm) {
@@ -70,6 +76,34 @@ export default function HomePage() {
       );
     }
     
+    // Apply filters from FilterSheet
+    currentProperties = currentProperties.filter(property => {
+      const minPrice = parseFloat(activeFilters.minPrice);
+      const maxPrice = parseFloat(activeFilters.maxPrice);
+      const bedrooms = parseInt(activeFilters.bedrooms, 10);
+      const bathrooms = parseInt(activeFilters.bathrooms, 10);
+
+      if (!isNaN(minPrice) && property.price < minPrice) return false;
+      if (!isNaN(maxPrice) && property.price > maxPrice) return false;
+      if (activeFilters.listingType !== 'any' && property.type !== activeFilters.listingType) return false;
+      
+      if (!isNaN(bedrooms) && property.bedrooms < bedrooms) return false;
+      if (!isNaN(bathrooms) && property.bathrooms < bathrooms) return false;
+      
+      if (activeFilters.garage && !property.garage) return false;
+      if (activeFilters.negotiable && !property.negotiable) return false;
+      if (activeFilters.accessibility !== 'any' && property.accessibility !== activeFilters.accessibility) return false;
+      if (activeFilters.water && !property.utilities.water) return false;
+      if (activeFilters.electricity && !property.utilities.electricity) return false;
+
+      if (activeFilters.selectedFeatures.length > 0) {
+        if (!activeFilters.selectedFeatures.every(feature => property.features.includes(feature))) {
+          return false;
+        }
+      }
+      return true;
+    });
+    
     let propertiesWithDistance: PropertyWithDistance[] = currentProperties.map(p => ({ ...p }));
 
     if (locationStatus === 'success' && userLocation) {
@@ -78,18 +112,24 @@ export default function HomePage() {
         distance: haversineDistance(userLocation, property.coordinates),
       }));
       propertiesWithDistance.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-    } else {
-      // Keep original order or apply other sorting if location is not available
-       propertiesWithDistance = currentProperties;
     }
     
     setPropertiesToDisplay(propertiesWithDistance);
 
-  }, [userLocation, locationStatus, searchTerm]);
+  }, [userLocation, locationStatus, searchTerm, activeFilters]);
+
+
+  useEffect(() => {
+    applyAllFilters();
+  }, [applyAllFilters]);
 
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
+  };
+
+  const handleApplyFilters = (filters: AppliedFilters) => {
+    setActiveFilters(filters);
   };
 
   return (
@@ -105,16 +145,16 @@ export default function HomePage() {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
           />
-          <Button variant="default" className="w-full md:w-auto" onClick={() => handleSearch(searchTerm)}>
+          <Button variant="default" className="w-full md:w-auto" onClick={() => applyAllFilters()}>
             <Search className="mr-2 h-4 w-4" /> Search
           </Button>
-          <Button variant="outline" className="w-full md:w-auto">
+          <Button variant="outline" className="w-full md:w-auto" onClick={() => setIsFilterSheetOpen(true)}>
             <Filter className="mr-2 h-4 w-4" /> Filters
           </Button>
         </div>
       </div>
-
-      {/* Map Section */}
+      
+      {/* Map Section (moved under search/filter) */}
       <div className="h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-md">
         <MapComponent properties={propertiesToDisplay} />
       </div>
@@ -146,6 +186,12 @@ export default function HomePage() {
             <Button variant="outline">Load More Properties</Button>
         </div>
       )}
+      <FilterSheet 
+        open={isFilterSheetOpen} 
+        onOpenChange={setIsFilterSheetOpen}
+        onApplyFilters={handleApplyFilters}
+        currentFilters={activeFilters}
+      />
     </div>
   );
 }
