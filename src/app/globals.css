@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 87.8%; /* Light Gray #E0E0E0 */
-    --foreground: 20 14.3% 4.1%; /* Default dark */
+    --background: 0 0% 96.1%; /* Off-white (e.g., #F5F5F5) */
+    --foreground: 20 14.3% 4.1%; /* Default dark text */
 
     --card: 0 0% 100%; /* White */
     --card-foreground: 20 14.3% 4.1%;
@@ -13,24 +13,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 20 14.3% 4.1%;
 
-    --primary: 180 100% 25.1%; /* Teal #008080 */
+    --primary: 217 91% 60%; /* Vibrant Blue (e.g., #3B82F6) */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 0 0% 93%; /* Lighter Gray for secondary elements */
-    --secondary-foreground: 20 14.3% 10.1%; /* Darker text for secondary */
+    --secondary: 210 40% 96.1%; /* Light Cool Gray */
+    --secondary-foreground: 215 20.2% 35.1%; /* Desaturated blue-gray text */
 
-    --muted: 0 0% 90%; /* Muted gray */
-    --muted-foreground: 20 10% 45%; /* Muted text */
+    --muted: 210 40% 96.1%; /* Light Cool Gray */
+    --muted-foreground: 215 20.2% 55.1%; /* Muted blue-gray text */
 
-    --accent: 39 100% 50%; /* Orange #FFA500 */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 45 100% 47%; /* Vibrant Gold/Yellow (e.g., #FFD700 but a bit deeper) */
+    --accent-foreground: 20 14.3% 4.1%; /* Dark text for contrast on gold */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72.2% 50.6%; /* Vivid Red */
+    --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
-    --border: 0 0% 80%; /* Medium Gray */
-    --input: 0 0% 80%; /* Medium Gray */
-    --ring: 180 100% 30.1%; /* Teal for focus rings */
+    --border: 214.3 31.8% 91.4%; /* Light Gray border */
+    --input: 214.3 31.8% 91.4%; /* Light Gray input border */
+    --ring: 217 91% 65%; /* Slightly lighter blue for focus rings */
 
     --radius: 0.5rem;
 
@@ -41,7 +41,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Sidebar specific colors - not strictly used in this design but kept for completeness from original */
+    /* Sidebar specific colors - kept from original to provide distinct area styling */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -53,34 +53,33 @@
   }
 
   .dark {
-    /* Define dark theme colors if needed, for now matching light or providing sensible dark defaults */
-    --background: 20 14.3% 4.1%;
-    --foreground: 0 0% 95%; /* Light text for dark background */
+    --background: 222.2 47.4% 11.2%; /* Dark Blue */
+    --foreground: 210 40% 98%; /* Light text */
 
-    --card: 24 9.8% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 222.2 47.4% 14.2%; /* Slightly lighter dark blue for cards */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 222.2 47.4% 11.2%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 180 100% 35.1%; /* Slightly lighter Teal for dark mode */
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 91% 65%; /* Lighter Blue for dark mode */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 24 9.8% 10%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 217.2 32.6% 17.5%; /* Darker cool gray */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 24 9.8% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 75.1%; /* Lighter muted text */
 
-    --accent: 39 100% 55%; /* Slightly lighter Orange */
-    --accent-foreground: 0 0% 10%; /* Dark text for light orange */
+    --accent: 45 100% 57%; /* Lighter Gold/Yellow for dark mode */
+    --accent-foreground: 20 14.3% 4.1%; /* Dark text for contrast */
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50.6%; /* Vivid Red for dark mode */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 24 9.8% 15%;
-    --input: 24 9.8% 15%;
-    --ring: 180 100% 35.1%;
+    --border: 217.2 32.6% 27.5%; /* Darker gray border */
+    --input: 217.2 32.6% 27.5%;
+    --ring: 217 91% 70%; /* Lighter blue for focus rings */
 
     /* Chart colors - dark mode */
     --chart-1: 220 70% 50%;
@@ -89,7 +88,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar specific colors - dark mode */
+    /* Sidebar specific colors - dark mode - kept from original */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -107,6 +106,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Removed font-family: Arial, Helvetica, sans-serif; to allow Next/font to take precedence */
   }
 }
