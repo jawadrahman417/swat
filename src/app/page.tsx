@@ -1,12 +1,14 @@
+// src/app/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
-import type { Property } from '@/lib/placeholder-data'; // Import Property type
+import type { Property } from '@/lib/placeholder-data'; 
 import { placeholderProperties } from '@/lib/placeholder-data';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, AlertTriangle } from 'lucide-react';
+import MapComponent from '@/components/map/MapComponent'; // Import MapComponent
 
 // Helper function to calculate Haversine distance
 function haversineDistance(
@@ -30,12 +32,12 @@ interface PropertyWithDistance extends Property {
 }
 
 export default function HomePage() {
-  const [sortedProperties, setSortedProperties] = useState<PropertyWithDistance[]>([...placeholderProperties]);
+  const [propertiesToDisplay, setPropertiesToDisplay] = useState<PropertyWithDistance[]>([...placeholderProperties]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error' | 'unsupported' | 'default'>('loading');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // Ensure this runs only in the browser
     if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -52,29 +54,43 @@ export default function HomePage() {
       );
     } else {
       console.error("Geolocation is not supported by this browser or not in a browser environment.");
-      // Fallback if geolocation is not available or not in a browser
       setLocationStatus('unsupported');
     }
   }, []);
 
   useEffect(() => {
+    let currentProperties = [...placeholderProperties];
+
+    // Filter properties based on search term
+    if (searchTerm) {
+      currentProperties = currentProperties.filter(property =>
+        property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.type.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    let propertiesWithDistance: PropertyWithDistance[] = currentProperties.map(p => ({ ...p }));
+
     if (locationStatus === 'success' && userLocation) {
-      const propertiesWithDistance = placeholderProperties.map(property => ({
+      propertiesWithDistance = currentProperties.map(property => ({
         ...property,
         distance: haversineDistance(userLocation, property.coordinates),
       }));
       propertiesWithDistance.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-      setSortedProperties(propertiesWithDistance);
-    } else if (locationStatus === 'error' || locationStatus === 'unsupported') {
-      // If location failed, ensure default sort and update status to 'default' to show appropriate message
-      setSortedProperties([...placeholderProperties]); 
-      setLocationStatus('default');
-    } else if (locationStatus === 'loading') {
-      // While loading, properties are already set to default by useState initial value
-      // No specific action needed here unless we want a different loading display for properties
+    } else {
+      // Keep original order or apply other sorting if location is not available
+       propertiesWithDistance = currentProperties;
     }
-    // If locationStatus is 'default', properties are already set to default
-  }, [userLocation, locationStatus]);
+    
+    setPropertiesToDisplay(propertiesWithDistance);
+
+  }, [userLocation, locationStatus, searchTerm]);
+
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
 
   return (
     <div className="space-y-8">
@@ -86,8 +102,10 @@ export default function HomePage() {
             placeholder="Search by location, type, or keyword..."
             className="flex-grow"
             aria-label="Search properties"
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
           />
-          <Button variant="default" className="w-full md:w-auto">
+          <Button variant="default" className="w-full md:w-auto" onClick={() => handleSearch(searchTerm)}>
             <Search className="mr-2 h-4 w-4" /> Search
           </Button>
           <Button variant="outline" className="w-full md:w-auto">
@@ -96,28 +114,38 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Map Section */}
+      <div className="h-[400px] md:h-[500px] rounded-lg overflow-hidden shadow-md">
+        <MapComponent properties={propertiesToDisplay} />
+      </div>
+      
       {/* Location Status Message */}
       <div className="my-4 p-3 rounded-md text-sm bg-secondary text-secondary-foreground">
         {locationStatus === 'loading' && (
           <p className="flex items-center"><MapPin className="mr-2 h-4 w-4 animate-pulse text-primary" /> Fetching your location to sort properties by proximity...</p>
         )}
         {locationStatus === 'success' && userLocation && (
-          <p className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-primary" /> Properties sorted by proximity to you.</p>
+          <p className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-primary" /> Properties sorted by proximity to you. Map updated with results.</p>
         )}
         {(locationStatus === 'default' || locationStatus === 'error' || locationStatus === 'unsupported') && locationStatus !== 'loading' && (
-          <p className="flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-accent" /> Could not determine your location. Showing default property order. Please ensure location services are enabled.</p>
+          <p className="flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-accent" /> Could not determine your location. Showing default property order. Map displays all properties.</p>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-        {sortedProperties.map(property => (
+        {propertiesToDisplay.map(property => (
           <PropertyCard key={property.id} property={property} />
         ))}
+        {propertiesToDisplay.length === 0 && (
+            <p className="col-span-full text-center text-muted-foreground py-10">No properties match your current search or filters.</p>
+        )}
       </div>
 
-      <div className="flex justify-center mt-8">
-        <Button variant="outline">Load More Properties</Button>
-      </div>
+      {propertiesToDisplay.length > 0 && (
+        <div className="flex justify-center mt-8">
+            <Button variant="outline">Load More Properties</Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,11 +1,11 @@
+// MapComponent.tsx
 'use client';
 
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Home as HomeIcon } from "lucide-react"; // Renamed Home to avoid conflict
-import { placeholderProperties } from '@/lib/placeholder-data';
+import { MapPin, Home as HomeIcon } from "lucide-react";
 import type { Property } from '@/lib/placeholder-data';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -16,7 +16,12 @@ const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const DEFAULT_CENTER = { lat: 39.8283, lng: -98.5795 }; // US center
 const DEFAULT_ZOOM = 4;
 
-export default function MapComponent() {
+interface MapComponentProps {
+  properties: Property[];
+  className?: string;
+}
+
+export default function MapComponent({ properties, className }: MapComponentProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [markerRef, marker] = useAdvancedMarkerRef();
 
@@ -28,17 +33,19 @@ export default function MapComponent() {
     setSelectedPropertyId(null);
   }, []);
 
-  const selectedProperty = placeholderProperties.find(p => p.id === selectedPropertyId);
+  const selectedProperty = useMemo(() => {
+    return properties.find(p => p.id === selectedPropertyId);
+  }, [properties, selectedPropertyId]);
 
   if (!API_KEY || API_KEY === "YOUR_GOOGLE_MAPS_API_KEY_HERE") {
     return (
-      <Card className="w-full h-full">
+      <Card className={cn("w-full h-full", className)}>
         <CardHeader>
           <CardTitle className="flex items-center">
             <MapPin className="mr-2 h-6 w-6 text-primary" /> Interactive Property Map
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-full flex flex-col items-center justify-center bg-muted/50 rounded-b-md">
+        <CardContent className="h-full flex flex-col items-center justify-center bg-muted/50 rounded-b-md p-4">
           <p className="text-xl font-semibold text-destructive p-4 bg-destructive/10 rounded-md text-center">
             Google Maps API Key is missing or invalid.
           </p>
@@ -50,17 +57,20 @@ export default function MapComponent() {
     );
   }
 
-  const mapCenter = placeholderProperties.length > 0
-    ? {
-        lat: placeholderProperties.reduce((sum, p) => sum + p.coordinates.lat, 0) / placeholderProperties.length,
-        lng: placeholderProperties.reduce((sum, p) => sum + p.coordinates.lng, 0) / placeholderProperties.length,
-      }
-    : DEFAULT_CENTER;
+  const mapCenter = useMemo(() => {
+    if (properties.length > 0) {
+      return {
+        lat: properties.reduce((sum, p) => sum + p.coordinates.lat, 0) / properties.length,
+        lng: properties.reduce((sum, p) => sum + p.coordinates.lng, 0) / properties.length,
+      };
+    }
+    return DEFAULT_CENTER;
+  }, [properties]);
 
-  const mapZoom = placeholderProperties.length > 0 ? 10 : DEFAULT_ZOOM;
+  const mapZoom = properties.length > 0 ? 10 : DEFAULT_ZOOM;
 
   return (
-    <Card className="w-full h-full flex flex-col"> {/* Changed to h-full */}
+    <Card className={cn("w-full h-full flex flex-col", className)}>
       <CardHeader>
         <CardTitle className="flex items-center">
           <MapPin className="mr-2 h-6 w-6 text-primary" /> Interactive Property Map
@@ -69,14 +79,15 @@ export default function MapComponent() {
       <CardContent className="flex-grow p-0 rounded-b-md overflow-hidden">
         <APIProvider apiKey={API_KEY} solutionChannel="GMP_devsite_samples_js_react-map-solution">
           <Map
+            key={properties.length} // Force re-render if properties change, helps recenter
             defaultCenter={mapCenter}
             defaultZoom={mapZoom}
-            mapId="propswap-map-theme" // Optional: for custom styling in Google Cloud Console
+            mapId="propswap-map-theme"
             gestureHandling={'greedy'}
-            disableDefaultUI={false} // Enabled default UI for better usability
+            disableDefaultUI={false}
             className="w-full h-full"
           >
-            {placeholderProperties.map((property) => (
+            {properties.map((property) => (
               <AdvancedMarker
                 key={property.id}
                 position={property.coordinates}
@@ -103,7 +114,7 @@ export default function MapComponent() {
                       alt={selectedProperty.title} 
                       fill
                       sizes="240px"
-                      className="rounded-md object-cover" 
+                      className="rounded-md object-cover"
                       data-ai-hint="property exterior"
                     />
                   </div>
@@ -121,4 +132,9 @@ export default function MapComponent() {
       </CardContent>
     </Card>
   );
+}
+
+// Helper for cn if not already globally available
+function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ');
 }
