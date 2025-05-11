@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 20 14.3% 4.1%;
 
-    --primary: 217 91% 60%; /* Vibrant Blue (e.g., #3B82F6) */
+    --primary: 220 65% 45%; /* Dark Blue */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 210 40% 96.1%; /* Light Cool Gray */
@@ -30,7 +30,7 @@
 
     --border: 214.3 31.8% 91.4%; /* Light Gray border */
     --input: 214.3 31.8% 91.4%; /* Light Gray input border */
-    --ring: 217 91% 65%; /* Slightly lighter blue for focus rings */
+    --ring: 220 65% 50%; /* Dark Blue based ring */
 
     --radius: 0.5rem;
 
@@ -41,15 +41,15 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Sidebar specific colors - kept from original to provide distinct area styling */
+    /* Sidebar specific colors */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary: 220 65% 45%; /* Dark Blue, same as app primary */
+    --sidebar-primary-foreground: 0 0% 98%; 
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 220 65% 50%; /* Dark Blue based ring, same as app ring */
   }
 
   .dark {
@@ -62,7 +62,7 @@
     --popover: 222.2 47.4% 11.2%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 65%; /* Lighter Blue for dark mode */
+    --primary: 220 65% 55%; /* Lighter Dark Blue for dark mode */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 217.2 32.6% 17.5%; /* Darker cool gray */
@@ -79,7 +79,7 @@
 
     --border: 217.2 32.6% 27.5%; /* Darker gray border */
     --input: 217.2 32.6% 27.5%;
-    --ring: 217 91% 70%; /* Lighter blue for focus rings */
+    --ring: 220 65% 60%; /* Dark Blue based ring for dark mode */
 
     /* Chart colors - dark mode */
     --chart-1: 220 70% 50%;
@@ -88,15 +88,15 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar specific colors - dark mode - kept from original */
+    /* Sidebar specific colors - dark mode */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 220 65% 55%; /* Lighter Dark Blue, same as app dark primary */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 220 65% 60%; /* Dark Blue based ring, same as app dark ring */
   }
 }
 
