@@ -1,8 +1,9 @@
+
 // src/components/map/MapComponent.tsx
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import L, { type LatLngExpression } from 'leaflet'; // Import L and LatLngExpression type
+import L, { type LatLngExpression, type Map as LeafletMap } from 'leaflet'; // Import LeafletMap type
 // Import marker icon images if not using custom L.divIcon exclusively or for fallbacks.
 // Default Leaflet icons require these.
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -11,9 +12,9 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin } from "lucide-react"; // HomeIcon, AlertTriangle removed as they are not used here
+import { MapPin } from "lucide-react";
 import type { Property } from '@/lib/types';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Added useRef
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,13 +41,20 @@ interface MapComponentProps {
   onPropertySelect?: (propertyId: string | null) => void;
 }
 
-// Removed UpdateMapCenter component as MapContainer's center/zoom props are reactive.
-
 export default function MapComponent({ properties, className, selectedPropertyId, onPropertySelect }: MapComponentProps) {
   const [isClient, setIsClient] = useState(false);
+  const mapRef = useRef<LeafletMap | null>(null); // Ref to store map instance
 
   useEffect(() => {
     setIsClient(true);
+
+    // Cleanup function: remove map instance if it exists when component unmounts
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
   }, []);
 
   const mapCenter: LatLngExpression = useMemo(() => {
@@ -70,21 +78,33 @@ export default function MapComponent({ properties, className, selectedPropertyId
   const mapZoom = useMemo(() => {
     if (properties.length === 0) return DEFAULT_ZOOM;
     if (properties.length === 1) return 13; // Zoom in more for a single property
-    // For multiple properties, fitBounds is often better, but a fixed zoom can work.
-    return 6; 
+    return 6;
   }, [properties]);
-  
+
   const handleMarkerClick = useCallback((propertyId: string) => {
     if (onPropertySelect) {
       onPropertySelect(propertyId);
     }
   }, [onPropertySelect]);
 
-  if (!isClient) {
-    return <MapSkeleton />;
-  }
-
   const displayProperties = properties && properties.length > 0 ? properties : [];
+
+  // It's crucial to not render MapContainer until isClient is true
+  if (!isClient) {
+    // Render the full card structure with skeleton to maintain layout consistency
+     return (
+      <Card className={cn("w-full h-full flex flex-col shadow-lg rounded-lg overflow-hidden", className)}>
+        <CardHeader className="bg-card border-b">
+          <CardTitle className="flex items-center text-primary">
+            <MapPin className="mr-2 h-6 w-6" /> Interactive Property Map
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-grow p-0 relative">
+          <MapSkeleton />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={cn("w-full h-full flex flex-col shadow-lg rounded-lg overflow-hidden", className)}>
@@ -99,9 +119,14 @@ export default function MapComponent({ properties, className, selectedPropertyId
           zoom={mapZoom}
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
-          // Removed key to prevent unnecessary re-initializations unless MapComponent itself is keyed
+          whenCreated={(mapInstance) => {
+            // Clear previous map instance if any (belt-and-suspenders for HMR)
+            if (mapRef.current) {
+              mapRef.current.remove();
+            }
+            mapRef.current = mapInstance;
+          }}
         >
-          {/* UpdateMapCenter component removed */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -113,12 +138,12 @@ export default function MapComponent({ properties, className, selectedPropertyId
               eventHandlers={{
                 click: () => handleMarkerClick(property.id),
               }}
-              icon={L.divIcon({ // Using custom SVG icon
+              icon={L.divIcon({
                 html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 ${selectedPropertyId === property.id ? 'text-accent' : 'text-primary'}"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
                 className: `p-1 rounded-full shadow-md ${selectedPropertyId === property.id ? 'bg-primary-foreground ring-2 ring-accent' : 'bg-primary-foreground'} leaflet-marker-icon`,
-                iconSize: [32,32], 
-                iconAnchor: [16,32], // Anchor point of the icon (bottom center for house shape)
-                popupAnchor: [0,-32] // Popup anchor relative to iconAnchor
+                iconSize: [32,32],
+                iconAnchor: [16,32],
+                popupAnchor: [0,-32]
               })}
             >
               <Popup autoPan={false}>
@@ -128,7 +153,7 @@ export default function MapComponent({ properties, className, selectedPropertyId
                       src={property.imageUrl}
                       alt={property.title}
                       fill
-                      sizes="240px" // Provide appropriate sizes attribute
+                      sizes="240px"
                       className="object-cover"
                       data-ai-hint="property exterior"
                     />
@@ -137,16 +162,12 @@ export default function MapComponent({ properties, className, selectedPropertyId
                   <p className="text-xs text-muted-foreground ">{property.address}</p>
                   <p className="text-md font-bold text-primary">${property.price.toLocaleString()}</p>
                   <Button variant="default" size="sm" asChild className="w-full !mt-2">
-                    {/* The href targets an ID on the page. Ensure PropertyCard has corresponding id. */}
                     <Link href={`#property-${property.id}`} onClick={(e) => {
-                      // Smooth scroll to the property card
                       const element = document.getElementById(`property-${property.id}`);
                       if (element) {
-                        e.preventDefault(); // Prevent default link behavior only if element exists
+                        e.preventDefault();
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       }
-                      // Closing popup is handled by Leaflet by default when map is clicked or another popup opens.
-                      // If map.closePopup() is needed, it would require map instance access.
                     }}>View Details</Link>
                   </Button>
                 </div>
