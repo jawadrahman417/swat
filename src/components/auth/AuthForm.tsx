@@ -18,10 +18,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldCheck } from "lucide-react"; // Using ShieldCheck for 2FA icon
+import { ShieldCheck, Loader2 } from "lucide-react"; 
 import { useToast } from "@/hooks/use-toast";
+import { auth } from '@/lib/firebase/config';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup,
+  signOut,
+  sendEmailVerification
+} from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useState } from "react";
 
-// Placeholder icons for social media (replace with actual SVGs or lucide icons if available)
 const GoogleIcon = () => <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#4285F4" d="M21.35 11.1h-9.03v2.76h5.14c-.22.98-.76 1.83-1.55 2.42v1.87h2.4c1.4-1.3 2.2-3.2 2.2-5.34 0-.72-.07-1.4-.2-2.05z"/><path fill="#34A853" d="M12.32 22c2.37 0 4.36-.78 5.81-2.12l-2.4-1.87c-.78.52-1.78.83-2.91.83-2.25 0-4.15-1.52-4.83-3.56H2.68v1.93c1.44 2.86 4.3 4.82 7.64 4.82z"/><path fill="#FBBC05" d="M7.49 14.67c-.2-.59-.32-1.22-.32-1.87s.12-1.28.32-1.87V9.06H2.68C1.93 10.47 1.5 12.17 1.5 14s.43 3.53 1.18 4.94l2.81-2.27z"/><path fill="#EA4335" d="M12.32 7.18c1.3 0 2.45.45 3.36 1.32l2.12-2.12C16.2.92 14.21 0 11.82 0 8.48 0 5.62 2.01 4.18 4.87l2.81 2.18c.68-2.04 2.58-3.57 4.83-3.57z"/></svg>;
 const FacebookIcon = () => <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#1877F2" d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.407.593 24 1.324 24h11.494v-9.294H9.692v-3.622h3.127V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.324V1.324C24 .593 23.407 0 22.676 0z"/></svg>;
 const LinkedInIcon = () => <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#0A66C2" d="M20.447 20.447h-3.554v-5.57c0-1.328-.027-3.037-1.85-3.037-1.852 0-2.136 1.445-2.136 2.942v5.665H9.353V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.6 0 4.267 2.37 4.267 5.455v6.281zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 012.063-2.065 2.064 2.064 0 012.063 2.065A2.063 2.063 0 015.337 7.433zm1.776 13.014H3.56V9h3.553v11.447z"/><path d="M0 0h24v24H0z" fill="none"/></svg>;
@@ -48,6 +58,9 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function AuthForm() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,45 +72,92 @@ export default function AuthForm() {
     defaultValues: { email: "", password: "", confirmPassword: "", phoneNumber: "", enable2FA: false },
   });
 
-  function onLoginSubmit(values: LoginFormValues) {
-    console.log("Login submitted:", values);
-    // This is a placeholder. Actual login logic (e.g., API call to Firebase Auth) needs to be implemented.
-    toast({
-      title: "Login Attempt (Placeholder)",
-      description: "Login functionality is a placeholder. User data logged to console. Backend integration required.",
-      variant: "default"
-    });
+  async function onLoginSubmit(values: LoginFormValues) {
+    if (!auth) {
+        toast({ title: "Error", description: "Firebase not initialized. Please try again later.", variant: "destructive" });
+        return;
+    }
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({ title: "Login Successful", description: "Welcome back!" });
+      router.push('/'); 
+    } catch (error: any) {
+      toast({ title: "Login Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  function onSignupSubmit(values: SignupFormValues) {
-    console.log("Signup submitted:", values);
-    // This is a placeholder. Actual signup logic (e.g., API call to Firebase Auth) needs to be implemented.
-    toast({
-      title: "Sign Up Attempt (Placeholder)",
-      description: "Sign up functionality is a placeholder. User data logged to console. Backend integration required.",
-      variant: "default"
-    });
+  async function onSignupSubmit(values: SignupFormValues) {
+    if (!auth) {
+        toast({ title: "Error", description: "Firebase not initialized. Please try again later.", variant: "destructive" });
+        return;
+    }
+    setIsLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      // Optionally send email verification
+      if (userCredential.user) {
+        await sendEmailVerification(userCredential.user);
+        toast({ title: "Sign Up Successful", description: "Account created. Please check your email to verify your account." });
+      } else {
+        toast({ title: "Sign Up Successful", description: "Account created." });
+      }
+      // TODO: Handle 2FA setup if values.enable2FA is true. This typically involves server-side logic and user phone verification.
+      // For now, we'll just acknowledge it.
+      if (values.enable2FA) {
+        toast({ title: "2FA Note", description: "2FA setup is a placeholder. Additional steps required for full implementation." });
+      }
+      router.push('/');
+    } catch (error: any) {
+      toast({ title: "Sign Up Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  const handleSocialLogin = (provider: string) => {
-    console.log(`${provider} login attempt`);
-    // This is a placeholder. Actual social login (e.g., Firebase Auth with Google/Facebook) needs to be implemented.
-    toast({
-      title: `Social Login Attempt (${provider}) (Placeholder)`,
-      description: `${provider} login is a placeholder. Backend and provider setup required.`,
-      variant: "default"
-    });
+  const handleSocialLogin = async (providerName: string) => {
+    if (!auth) {
+        toast({ title: "Error", description: "Firebase not initialized. Please try again later.", variant: "destructive" });
+        return;
+    }
+    setIsSocialLoading(providerName);
+    try {
+      let provider;
+      if (providerName === "Google") {
+        provider = new GoogleAuthProvider();
+      } else {
+        toast({ title: "Unsupported Provider", description: `${providerName} login is not implemented yet.`, variant: "destructive" });
+        setIsSocialLoading(null);
+        return;
+      }
+      
+      await signInWithPopup(auth, provider);
+      toast({ title: "Login Successful", description: `Signed in with ${providerName}.` });
+      router.push('/');
+    } catch (error: any) {
+      toast({ title: `${providerName} Login Failed`, description: error.message, variant: "destructive" });
+    } finally {
+      setIsSocialLoading(null);
+    }
   };
 
   const socialLoginButtons = (
     <div className="space-y-3">
-      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("Google")}>
-        <GoogleIcon /> <span className="ml-2">Continue with Google</span>
+      <Button 
+        variant="outline" 
+        className="w-full" 
+        onClick={()={() => handleSocialLogin("Google")}
+        disabled={!!isSocialLoading}
+      >
+        {isSocialLoading === 'Google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />} 
+        <span className="ml-2">Continue with Google</span>
       </Button>
-      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("Facebook")}>
+      <Button variant="outline" className="w-full" onClick={() => toast({title: "Coming Soon", description: "Facebook login is not yet implemented."})}>
         <FacebookIcon /> <span className="ml-2">Continue with Facebook</span>
       </Button>
-      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("LinkedIn")}>
+      <Button variant="outline" className="w-full" onClick={() => toast({title: "Coming Soon", description: "LinkedIn login is not yet implemented."})}>
         <LinkedInIcon /> <span className="ml-2">Continue with LinkedIn</span>
       </Button>
     </div>
@@ -126,7 +186,7 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
+                          <Input placeholder="your@email.com" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -139,13 +199,16 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                          <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" variant="default">Login</Button>
+                  <Button type="submit" className="w-full" variant="default" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Login
+                  </Button>
                 </form>
               </Form>
               <Separator className="my-6" />
@@ -174,7 +237,7 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
+                          <Input placeholder="your@email.com" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -187,7 +250,7 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Choose a strong password" {...field} />
+                          <Input type="password" placeholder="Choose a strong password" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -200,7 +263,7 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Re-enter your password" {...field} />
+                          <Input type="password" placeholder="Re-enter your password" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -213,7 +276,7 @@ export default function AuthForm() {
                       <FormItem>
                         <FormLabel>Phone Number (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} />
+                          <Input placeholder="+1 (555) 123-4567" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -228,6 +291,7 @@ export default function AuthForm() {
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            disabled={isLoading}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -235,13 +299,16 @@ export default function AuthForm() {
                            <ShieldCheck className="mr-2 h-4 w-4 text-primary" /> Enable Two-Factor Authentication (Optional)
                           </FormLabel>
                            <p className="text-xs text-muted-foreground">
-                            Enhance your account security.
+                            Enhance your account security. (Full 2FA setup requires additional backend implementation)
                           </p>
                         </div>
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" variant="default">Create Account</Button>
+                  <Button type="submit" className="w-full" variant="default" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Account
+                  </Button>
                 </form>
               </Form>
               <Separator className="my-6" />
@@ -258,4 +325,3 @@ export default function AuthForm() {
     </div>
   );
 }
-
