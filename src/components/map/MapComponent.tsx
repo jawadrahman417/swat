@@ -5,11 +5,12 @@
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useAdvancedMarkerRef } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Home as HomeIcon } from "lucide-react";
-import type { Property } from '@/lib/types'; // Updated import
+import type { Property } from '@/lib/types'; 
 import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -38,7 +39,8 @@ export default function MapComponent({ properties, className }: MapComponentProp
     return properties.find(p => p.id === selectedPropertyId);
   }, [properties, selectedPropertyId]);
 
-  if (!API_KEY || API_KEY === "YOUR_GOOGLE_MAPS_API_KEY_HERE") {
+  if (!API_KEY) {
+    console.error("Google Maps API Key is missing. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your .env file.");
     return (
       <Card className={cn("w-full h-full", className)}>
         <CardHeader>
@@ -51,7 +53,7 @@ export default function MapComponent({ properties, className }: MapComponentProp
             Google Maps API Key is missing or invalid.
           </p>
           <p className="mt-4 text-sm text-muted-foreground text-center">
-            Please add your NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file.
+            Please ensure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is correctly set in your .env file.
           </p>
         </CardContent>
       </Card>
@@ -59,11 +61,6 @@ export default function MapComponent({ properties, className }: MapComponentProp
   }
 
   const mapCenter = useMemo(() => {
-    if (properties.length > 0) {
-      // If properties are filtered, center on the first one or average
-      // For simplicity, centering on the first one if available
-      return properties[0].coordinates;
-    }
     if (selectedProperty) {
         return selectedProperty.coordinates;
     }
@@ -88,7 +85,7 @@ export default function MapComponent({ properties, className }: MapComponentProp
       <CardContent className="flex-grow p-0 rounded-b-md overflow-hidden">
         <APIProvider apiKey={API_KEY} solutionChannel="GMP_devsite_samples_js_react-map-solution">
           <Map
-            key={properties.map(p => p.id).join(',') + (selectedProperty?.id || '')} // Force re-render if properties or selection change
+            key={properties.map(p => p.id).join(',') + (selectedProperty?.id || '')} 
             center={mapCenter}
             zoom={mapZoom}
             mapId="propswap-map-theme"
@@ -131,7 +128,6 @@ export default function MapComponent({ properties, className }: MapComponentProp
                   <p className="text-xs text-muted-foreground ">{selectedProperty.address}</p>
                   <p className="text-md font-bold text-primary">${selectedProperty.price.toLocaleString()}</p>
                   <Button variant="accent" size="sm" asChild className="w-full !mt-2">
-                    {/* The Link might need to be adjusted if PropertyCard is not directly on the page or scroll target is different */}
                     <Link href={`#property-${selectedProperty.id}`} onClick={() => document.getElementById(`property-${selectedProperty.id}`)?.scrollIntoView({behavior: 'smooth'}) }>View Details</Link>
                   </Button>
                 </div>
@@ -142,9 +138,4 @@ export default function MapComponent({ properties, className }: MapComponentProp
       </CardContent>
     </Card>
   );
-}
-
-// Helper for cn if not already globally available
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ');
 }
