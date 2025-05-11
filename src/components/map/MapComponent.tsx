@@ -37,7 +37,7 @@ export default function MapComponent({ properties, className }: MapComponentProp
     setSelectedPropertyId(propertyId);
   }, []);
 
-  const handleInfoWindowClose = useCallback(()={() => {
+  const handleInfoWindowClose = useCallback(() => {
     setSelectedPropertyId(null);
   }, []);
 
@@ -45,7 +45,7 @@ export default function MapComponent({ properties, className }: MapComponentProp
     return properties.find(p => p.id === selectedPropertyId);
   }, [properties, selectedPropertyId]);
 
-  const mapCenter = useMemo(()={() => {
+  const mapCenter = useMemo(() => {
     if (selectedProperty) {
         return selectedProperty.coordinates;
     }
@@ -176,3 +176,4 @@ export default function MapComponent({ properties, className }: MapComponentProp
     </Card>
   );
 }
+
