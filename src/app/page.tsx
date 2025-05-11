@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
 import FilterSheet from '@/components/property/FilterSheet'; 
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { MapPin as MapPinIcon } from 'lucide-react'; // Renamed to avoid conflict if MapPin is used elsewhere
 
 export default function HomePage() {
   const [propertiesToDisplay, setPropertiesToDisplay] = useState<Property[]>([...placeholderProperties]);
@@ -55,6 +57,11 @@ export default function HomePage() {
           return false;
         }
       }
+      if (activeFilters.location.trim() !== '') {
+        if (!property.address.toLowerCase().includes(activeFilters.location.toLowerCase())) {
+          return false;
+        }
+      }
       return true;
     });
     
@@ -76,38 +83,65 @@ export default function HomePage() {
     setActiveFilters(filters);
   };
 
+  // Sort properties by proximity to a default location (e.g., Karachi)
+  // This is a simplified proximity sort, real-world would use actual user location.
+  const sortedProperties = [...propertiesToDisplay].sort((a, b) => {
+    const defaultLocation = { lat: 24.8607, lng: 67.0011 }; // Karachi as example
+    const distA = Math.sqrt(Math.pow(a.coordinates.lat - defaultLocation.lat, 2) + Math.pow(a.coordinates.lng - defaultLocation.lng, 2));
+    const distB = Math.sqrt(Math.pow(b.coordinates.lat - defaultLocation.lat, 2) + Math.pow(b.coordinates.lng - defaultLocation.lng, 2));
+    return distA - distB;
+  });
+
   return (
     <div className="space-y-8">
-      <div className="bg-card p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-4 text-primary">Find Your Next Property</h1>
-        <div className="flex flex-col md:flex-row gap-4">
-          <Input
-            type="text"
-            placeholder="Search by location, type, or keyword..."
-            className="flex-grow"
-            aria-label="Search properties"
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-          <Button variant="default" className="w-full md:w-auto" onClick={() => applyAllFilters()}>
-            <Search className="mr-2 h-4 w-4" /> Search
-          </Button>
-          <Button variant="outline" className="w-full md:w-auto" onClick={() => setIsFilterSheetOpen(true)}>
-            <Filter className="mr-2 h-4 w-4" /> Filters
-          </Button>
-        </div>
-      </div>
+      <Card className="bg-card p-6 rounded-lg shadow-lg">
+        <CardHeader className="p-0 mb-6">
+            <CardTitle className="text-3xl font-bold text-primary">Find Your Next Property</CardTitle>
+            <CardDescription>Search, filter, and explore listings.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+            <div className="flex flex-col md:flex-row gap-4">
+            <Input
+                type="text"
+                placeholder="Search by location, type, or keyword..."
+                className="flex-grow"
+                aria-label="Search properties"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+            />
+            <Button variant="default" className="w-full md:w-auto" onClick={() => applyAllFilters()}>
+                <Search className="mr-2 h-4 w-4" /> Search
+            </Button>
+            <Button variant="outline" className="w-full md:w-auto" onClick={() => setIsFilterSheetOpen(true)}>
+                <Filter className="mr-2 h-4 w-4" /> Filters
+            </Button>
+            </div>
+        </CardContent>
+      </Card>
       
+      {/* Placeholder for Map - Removed MapComponent to fix initialization error */}
+      {/* <Card className="bg-card p-0 rounded-lg shadow-lg overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold text-primary flex items-center">
+            <MapPinIcon className="mr-2 h-5 w-5" /> Property Locations
+          </CardTitle>
+          <CardDescription>Visualise properties on the map.</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[400px] md:h-[500px] bg-muted flex items-center justify-center">
+            <p className="text-muted-foreground">Map feature is currently unavailable.</p>
+        </CardContent>
+      </Card> */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-        {propertiesToDisplay.map(property => (
+        {sortedProperties.map(property => (
           <PropertyCard key={property.id} property={property} />
         ))}
-        {propertiesToDisplay.length === 0 && (
+        {sortedProperties.length === 0 && (
             <p className="col-span-full text-center text-muted-foreground py-10">No properties match your current search or filters.</p>
         )}
       </div>
 
-      {propertiesToDisplay.length > 0 && (
+      {sortedProperties.length > 0 && (
         <div className="flex justify-center mt-8">
             <Button variant="outline">Load More Properties</Button>
         </div>
@@ -121,4 +155,3 @@ export default function HomePage() {
     </div>
   );
 }
-
