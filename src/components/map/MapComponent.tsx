@@ -50,7 +50,7 @@ const UpdateMapCenter = ({ center, zoom }: { center: L.LatLngExpression; zoom: n
 
 export default function MapComponent({ properties, className, selectedPropertyId, onPropertySelect }: MapComponentProps) {
   const [isClient, setIsClient] = useState(false);
-  // const [mapInstance, setMapInstance] = useState<L.Map | null>(null); // Keep if needed for other direct map manipulations
+  // const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -93,8 +93,8 @@ export default function MapComponent({ properties, className, selectedPropertyId
           zoom={mapZoom}
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
-          // whenCreated={setMapInstance} // Keep if needed
-          key={displayProperties.map(p=>p.id).join('_') + (selectedPropertyId || '')} // Re-render map if properties change significantly or selection
+          // whenCreated={setMapInstance} // Removed: If not used, can be omitted.
+                                        // Key removed to prevent re-initialization issues
         >
           <UpdateMapCenter center={mapCenter} zoom={mapZoom} />
           <TileLayer
@@ -137,7 +137,6 @@ export default function MapComponent({ properties, className, selectedPropertyId
                       const element = document.getElementById(`property-${property.id}`);
                       element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       // Closing popup logic can be complex. Leaflet handles it mostly.
-                      // If custom close needed: mapInstance?.closePopup();
                     }}>View Details</Link>
                   </Button>
                 </div>
