@@ -5,12 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { UploadIcon, LogInIcon, LayoutGridIcon } from 'lucide-react'; // Removed MessageSquareIcon
+import { LogInIcon, LayoutGridIcon, UserCircle } from 'lucide-react'; // Changed UploadIcon to UserCircle
 
 const navLinks = [
   { href: '/', label: 'Feed', icon: LayoutGridIcon },
-  { href: '/upload', label: 'Upload', icon: UploadIcon },
-  // { href: '/chat', label: 'Chat', icon: MessageSquareIcon }, // Removed Chat link
+  { href: '/profile', label: 'Profile', icon: UserCircle }, // Changed from Upload to Profile
 ];
 
 export default function Navigation() {
@@ -46,4 +45,3 @@ export default function Navigation() {
     </nav>
   );
 }
-
