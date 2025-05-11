@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,15 +17,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldCheck, Loader2 } from "lucide-react"; 
+import { ShieldCheck, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from '@/lib/firebase/config';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  GoogleAuthProvider, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
   signInWithPopup,
-  signOut,
   sendEmailVerification
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -81,7 +79,7 @@ export default function AuthForm() {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({ title: "Login Successful", description: "Welcome back!" });
-      router.push('/'); 
+      router.push('/');
     } catch (error: any) {
       toast({ title: "Login Failed", description: error.message, variant: "destructive" });
     } finally {
@@ -97,15 +95,12 @@ export default function AuthForm() {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      // Optionally send email verification
       if (userCredential.user) {
         await sendEmailVerification(userCredential.user);
         toast({ title: "Sign Up Successful", description: "Account created. Please check your email to verify your account." });
       } else {
         toast({ title: "Sign Up Successful", description: "Account created." });
       }
-      // TODO: Handle 2FA setup if values.enable2FA is true. This typically involves server-side logic and user phone verification.
-      // For now, we'll just acknowledge it.
       if (values.enable2FA) {
         toast({ title: "2FA Note", description: "2FA setup is a placeholder. Additional steps required for full implementation." });
       }
@@ -132,7 +127,7 @@ export default function AuthForm() {
         setIsSocialLoading(null);
         return;
       }
-      
+
       await signInWithPopup(auth, provider);
       toast({ title: "Login Successful", description: `Signed in with ${providerName}.` });
       router.push('/');
@@ -143,15 +138,15 @@ export default function AuthForm() {
     }
   };
 
-  const socialLoginButtons = (
+  const SocialLoginButtonsComponent = () => (
     <div className="space-y-3">
-      <Button 
-        variant="outline" 
-        className="w-full" 
-        onClick={()={() => handleSocialLogin("Google")}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => handleSocialLogin("Google")}
         disabled={!!isSocialLoading}
       >
-        {isSocialLoading === 'Google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />} 
+        {isSocialLoading === 'Google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
         <span className="ml-2">Continue with Google</span>
       </Button>
       <Button variant="outline" className="w-full" onClick={() => toast({title: "Coming Soon", description: "Facebook login is not yet implemented."})}>
@@ -212,7 +207,7 @@ export default function AuthForm() {
                 </form>
               </Form>
               <Separator className="my-6" />
-              {socialLoginButtons}
+              <SocialLoginButtonsComponent />
             </CardContent>
              <CardFooter>
               <p className="text-xs text-muted-foreground text-center w-full">
@@ -312,7 +307,7 @@ export default function AuthForm() {
                 </form>
               </Form>
               <Separator className="my-6" />
-              {socialLoginButtons}
+              <SocialLoginButtonsComponent />
             </CardContent>
             <CardFooter>
               <p className="text-xs text-muted-foreground text-center w-full">
