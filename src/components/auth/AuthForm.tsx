@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShieldCheck } from "lucide-react"; // Using ShieldCheck for 2FA icon
+import { useToast } from "@/hooks/use-toast";
 
 // Placeholder icons for social media (replace with actual SVGs or lucide icons if available)
 const GoogleIcon = () => <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#4285F4" d="M21.35 11.1h-9.03v2.76h5.14c-.22.98-.76 1.83-1.55 2.42v1.87h2.4c1.4-1.3 2.2-3.2 2.2-5.34 0-.72-.07-1.4-.2-2.05z"/><path fill="#34A853" d="M12.32 22c2.37 0 4.36-.78 5.81-2.12l-2.4-1.87c-.78.52-1.78.83-2.91.83-2.25 0-4.15-1.52-4.83-3.56H2.68v1.93c1.44 2.86 4.3 4.82 7.64 4.82z"/><path fill="#FBBC05" d="M7.49 14.67c-.2-.59-.32-1.22-.32-1.87s.12-1.28.32-1.87V9.06H2.68C1.93 10.47 1.5 12.17 1.5 14s.43 3.53 1.18 4.94l2.81-2.27z"/><path fill="#EA4335" d="M12.32 7.18c1.3 0 2.45.45 3.36 1.32l2.12-2.12C16.2.92 14.21 0 11.82 0 8.48 0 5.62 2.01 4.18 4.87l2.81 2.18c.68-2.04 2.58-3.57 4.83-3.57z"/></svg>;
@@ -45,6 +47,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function AuthForm() {
+  const { toast } = useToast();
+
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -57,23 +61,43 @@ export default function AuthForm() {
 
   function onLoginSubmit(values: LoginFormValues) {
     console.log("Login submitted:", values);
-    // Handle login logic
+    // This is a placeholder. Actual login logic (e.g., API call to Firebase Auth) needs to be implemented.
+    toast({
+      title: "Login Attempt (Placeholder)",
+      description: "Login functionality is a placeholder. User data logged to console. Backend integration required.",
+      variant: "default"
+    });
   }
 
   function onSignupSubmit(values: SignupFormValues) {
     console.log("Signup submitted:", values);
-    // Handle signup logic
+    // This is a placeholder. Actual signup logic (e.g., API call to Firebase Auth) needs to be implemented.
+    toast({
+      title: "Sign Up Attempt (Placeholder)",
+      description: "Sign up functionality is a placeholder. User data logged to console. Backend integration required.",
+      variant: "default"
+    });
   }
+
+  const handleSocialLogin = (provider: string) => {
+    console.log(`${provider} login attempt`);
+    // This is a placeholder. Actual social login (e.g., Firebase Auth with Google/Facebook) needs to be implemented.
+    toast({
+      title: `Social Login Attempt (${provider}) (Placeholder)`,
+      description: `${provider} login is a placeholder. Backend and provider setup required.`,
+      variant: "default"
+    });
+  };
 
   const socialLoginButtons = (
     <div className="space-y-3">
-      <Button variant="outline" className="w-full" onClick={() => console.log("Google login")}>
+      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("Google")}>
         <GoogleIcon /> <span className="ml-2">Continue with Google</span>
       </Button>
-      <Button variant="outline" className="w-full" onClick={() => console.log("Facebook login")}>
+      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("Facebook")}>
         <FacebookIcon /> <span className="ml-2">Continue with Facebook</span>
       </Button>
-      <Button variant="outline" className="w-full" onClick={() => console.log("LinkedIn login")}>
+      <Button variant="outline" className="w-full" onClick={() => handleSocialLogin("LinkedIn")}>
         <LinkedInIcon /> <span className="ml-2">Continue with LinkedIn</span>
       </Button>
     </div>
@@ -234,3 +258,4 @@ export default function AuthForm() {
     </div>
   );
 }
+
