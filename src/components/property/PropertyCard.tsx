@@ -11,7 +11,10 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property }: PropertyCardProps) {
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+    <Card 
+      id={`property-${property.id}`} // Added id for deep linking
+      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
+    >
       <CardHeader className="p-0">
         <div className="relative w-full h-52 md:h-60">
           <Image 
